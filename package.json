@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development webpack serve --mode development",
     "build": "cross-env NODE_ENV=production webpack --mode production",
     "prettier": "prettier --write src/",
-    "commit":"cz",
+    "commit": "cz",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "config": {
@@ -59,8 +59,10 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
+    "@types/react-router-dom": "^5.3.3",
     "core-js": "^3.47.0",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.11.0"
   }
 }
