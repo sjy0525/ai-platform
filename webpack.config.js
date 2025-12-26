@@ -1,14 +1,19 @@
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-const HtmlWebpackPlugin = require("html-webpack-plugin")
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const PreloadWebpackPlugin = require("@vue/preload-webpack-plugin")
-const path = require("path")
-const webpack = require("webpack")
+import CssMinimizerPlugin from "css-minimizer-webpack-plugin"
+import HtmlWebpackPlugin from "html-webpack-plugin"
+import MiniCssExtractPlugin from "mini-css-extract-plugin"
+import PreloadWebpackPlugin from "@vue/preload-webpack-plugin"
+import path from "path"
+import { fileURLToPath } from "url"
+import webpack from "webpack"
 
 /**
  * Webpack配置文件
  * @type {import('webpack').Configuration}
  */
+
+// 获取 __dirname 的 ES6 模块兼容方式
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // 判断当前环境变量
 const isProduction = process.env.NODE_ENV === "production"
@@ -228,4 +233,4 @@ if (isProduction) {
   }
 }
 
-module.exports = config
+export default config
