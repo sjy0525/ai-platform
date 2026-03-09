@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:3000/api',
   timeout: 10000,
+  withCredentials: true,
 });
 
 // 请求拦截器 - 添加token

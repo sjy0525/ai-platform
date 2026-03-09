@@ -24,12 +24,12 @@ export class User {
   avatar: string;
 
   /** 订阅的关键词列表，JSON 存储 */
-  @Column({ type: 'json', default: '[]' })
-  subscribedKeywords: string[];
+  @Column({ type: 'json', nullable: true })
+  subscribedKeywords: string[] | null;
 
   /** 收藏的文章 ID 列表，JSON 存储 */
-  @Column({ type: 'json', default: '[]' })
-  collectedArticleIds: string[];
+  @Column({ type: 'json', nullable: true })
+  collectedArticleIds: string[] | null;
 
   @CreateDateColumn()
   createdAt: Date;

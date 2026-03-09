@@ -11,12 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
-    proxy: {
-      "/api": {
-        target: "http://localhost:3001", // 你的Nest.js后端
-        changeOrigin: true,
-      },
-    },
+    // 前端开发端口
+    port: 5173,
   },
 });
