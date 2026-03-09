@@ -10,11 +10,7 @@ coverage/
 **/build/
 **/coverage/
 
-# env & secrets
-.env
-.env.*
-**/.env
-**/.env.*
+
 
 # logs
 *.log
