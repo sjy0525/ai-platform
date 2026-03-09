@@ -1,0 +1,38 @@
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1890ff;
+  text-decoration: none;
+  justify-self: start;
+}
+
+.brand:hover {
+  color: #40a9ff;
+}
+
+.searchWrapper {
+  justify-self: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.userCenter {
+  justify-self: end;
+}
+
+.userCenter :global(.ant-btn) {
+  padding: 8px 24px;
+  font-size: 16px;
+  border-radius: 5px;
+}

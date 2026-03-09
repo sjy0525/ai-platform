@@ -1,0 +1,62 @@
+.container {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.card {
+  max-width: 500px;
+  margin:100px  auto;
+}
+
+.card :global(.ant-card-body) {
+  padding: 32px 100px;
+}
+
+.profileSection {
+  text-align: center;
+}
+
+.avatar {
+  background-color: #1890ff;
+  font-size: 32px;
+}
+
+.nickname {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #333;
+}
+
+.userId {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.editBtn {
+  margin-left: 8px;
+  padding: 0 4px;
+}
+
+.motto {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.entries {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.entries a {
+  flex: 1;
+}
+
+.entryBtn {
+  height: 50px;
+  width: 10%;
+}

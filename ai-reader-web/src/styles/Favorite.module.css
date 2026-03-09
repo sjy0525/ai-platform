@@ -1,0 +1,85 @@
+.container {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.card {
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.card :global(.ant-card-body) {
+  padding: 0;
+}
+
+.card :global(.ant-tabs) {
+  padding: 0 24px 24px;
+}
+
+.card :global(.ant-tabs-tab) {
+  padding: 16px 0;
+}
+
+.listItem {
+  padding: 20px 0 !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.articleLink {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.articleContent {
+  width: 100%;
+}
+
+.articleTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.articleExcerpt {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.articleFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #999;
+}
+
+.articleMeta {
+  display: flex;
+  gap: 16px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.articleLink:hover .articleTitle {
+  color: #1890ff;
+}

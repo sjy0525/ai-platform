@@ -1,0 +1,90 @@
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto auto 1fr;
+  gap: 20px;
+  padding: 20px;
+  grid-template-areas:
+    "hotTags recommend subscription"
+    "hotTags recommend favorite"
+    "hotTags recommend hotList";
+  align-items: start;
+  min-height: 0;
+}
+
+.leftPanel {
+  grid-area: hotTags;
+  align-self: stretch;
+}
+
+.subscriptionEntry {
+  grid-area: subscription;
+  background-color: #1890ff;
+  border: 1px solid #1890ff;
+  border-radius: 8px;
+  padding: 12px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  position: sticky;
+  top: 0;
+}
+
+.subscriptionEntry:hover {
+  background-color: #40a9ff;
+}
+
+.favoriteEntry {
+  grid-area: favorite;
+  background-color: #1890ff;
+  border: 1px solid #1890ff;
+  border-radius: 8px;
+  padding: 12px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  position: sticky;
+  top: 120px;
+}
+
+.favoriteEntry:hover {
+  background-color: #40a9ff;
+}
+
+.recommendArea {
+  grid-area: recommend;
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  padding: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+}
+
+.hotListWrapper {
+  grid-area: hotList;
+  align-self: stretch;
+  position: sticky;
+  top: 240px;
+}

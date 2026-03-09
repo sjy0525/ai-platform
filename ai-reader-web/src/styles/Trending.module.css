@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  padding: 24px;
+  gap: 24px;
+}
+
+.leftPanel {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.rightPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.tagCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.tagCard :global(.ant-card-body) {
+  padding: 16px;
+}
+
+.tagList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tagItem {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.tagItem:hover {
+  background-color: #f5f5f5;
+}
+
+.tagItem.active {
+  background-color: #e6f4ff;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.articleCard {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.articleCard :global(.ant-card-body) {
+  padding: 20px;
+}
+
+.listItem {
+  padding: 16px 0 !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.articleLink {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.articleItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+.rank {
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 28px;
+  text-align: center;
+}
+
+.articleContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.articleTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.articleMeta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.articleLink:hover .articleTitle {
+  color: #1890ff;
+}
