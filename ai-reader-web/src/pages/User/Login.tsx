@@ -80,7 +80,7 @@ const Login = () => {
           </Form.Item>
 
           <div className={styles.footer}>
-            <Link to="/user-info">忘记密码？</Link>
+            <Link to="/register">立即注册</Link>
             <span className={styles.divider}>|</span>
             <Link to="/">返回首页</Link>
           </div>

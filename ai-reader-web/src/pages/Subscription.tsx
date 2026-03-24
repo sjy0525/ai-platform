@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Select, Card, List, Tag, Empty, message, Spin } from "antd";
+import { Select, Card, List, Tag, Empty, message, Spin, Button } from "antd";
 import { getSubscribeArticlesApi, type BackendArticle } from "../services";
 import styles from "../styles/Subscription.module.css";
 
@@ -20,6 +20,7 @@ const Subscription = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [matchedArticles, setMatchedArticles] = useState<BackendArticle[]>([]);
   const [loading, setLoading] = useState(false);
+  const [subscribedArticleIds, setSubscribedArticleIds] = useState<string[]>([]);
 
   const formatNumber = (num: number): string => {
     if (num >= 10000) return `${(num / 10000).toFixed(1)}k`;
@@ -100,6 +101,16 @@ const Subscription = () => {
     return matchedArticles.slice(0, 3);
   };
 
+  const handleSubscribeByArticle = (article: BackendArticle) => {
+    const articleId = getArticleId(article);
+    if (subscribedArticleIds.includes(articleId)) {
+      message.info("已订阅");
+      return;
+    }
+    setSubscribedArticleIds((prev) => [...prev, articleId]);
+    message.success("已订阅");
+  };
+
   const displayArticles = getArticleList();
 
   return (
@@ -136,7 +147,25 @@ const Subscription = () => {
                       className={styles.articleLink}
                     >
                       <div className={styles.articleItem}>
-                        <h4 className={styles.articleTitle}>{getArticleTitle(item)}</h4>
+                        <div className={styles.titleRow}>
+                          <h4 className={styles.articleTitle}>{getArticleTitle(item)}</h4>
+                          {subscribedArticleIds.includes(getArticleId(item)) ? (
+                            <span className={styles.subscribedText}>已订阅</span>
+                          ) : (
+                            <Button
+                              type="text"
+                              shape="circle"
+                              className={styles.subscribePlus}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                handleSubscribeByArticle(item);
+                              }}
+                            >
+                              +
+                            </Button>
+                          )}
+                        </div>
                         <p className={styles.articleExcerpt}>{getArticleSummary(item)}</p>
                         <div className={styles.articleMeta}>
                           <span>{getArticleAuthor(item)}</span>

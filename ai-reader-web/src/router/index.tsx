@@ -5,6 +5,7 @@ import Trending from "../pages/Trending";
 import Favorite from "../pages/Favorite";
 import Subscription from "../pages/Subscription";
 import Login from "../pages/User/Login";
+import Register from "../pages/User/Register";
 import User from "../pages/User/User";
 import Article from "../pages/article";
 
@@ -42,5 +43,9 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login></Login>,
+  },
+  {
+    path: "/register",
+    element: <Register></Register>,
   },
 ]);

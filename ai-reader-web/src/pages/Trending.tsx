@@ -4,30 +4,31 @@ import { Card, List, Tag, Spin, Empty, message } from "antd";
 import { getHotArticlesApi, type BackendArticle } from "../services";
 import styles from "../styles/Trending.module.css";
 
-const platforms = ["稀土掘金", "知乎", "CSDN"];
+const techStacks = ["全部", "前端", "后端", "AI编程", "Android", "架构", "面试"];
 
 const Trending = () => {
   const [searchParams] = useSearchParams();
-  const platformFromUrl = searchParams.get("platform");
-  const [selectedPlatform, setSelectedPlatform] = useState<string>(
-    platformFromUrl && platforms.includes(platformFromUrl)
-      ? platformFromUrl
-      : platforms[0]
+  const tagFromUrl = searchParams.get("tag");
+  const [selectedTag, setSelectedTag] = useState<string>(
+    tagFromUrl && techStacks.includes(tagFromUrl)
+      ? tagFromUrl
+      : techStacks[0]
   );
   const [articles, setArticles] = useState<BackendArticle[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (platformFromUrl && platforms.includes(platformFromUrl)) {
-      setSelectedPlatform(platformFromUrl);
+    if (tagFromUrl && techStacks.includes(tagFromUrl)) {
+      setSelectedTag(tagFromUrl);
     }
-  }, [platformFromUrl]);
+  }, [tagFromUrl]);
 
   useEffect(() => {
     const fetchHotArticles = async () => {
       try {
         setLoading(true);
-        const res = await getHotArticlesApi({ platform: selectedPlatform });
+        const params = selectedTag === "全部" ? undefined : { tag: selectedTag };
+        const res = await getHotArticlesApi(params);
         setArticles(res);
       } catch (error) {
         console.error("获取热榜失败:", error);
@@ -38,7 +39,7 @@ const Trending = () => {
     };
 
     fetchHotArticles();
-  }, [selectedPlatform]);
+  }, [selectedTag]);
 
   const formatNumber = (num: number): string => {
     if (num >= 10000) return `${(num / 10000).toFixed(1)}k`;
@@ -57,13 +58,13 @@ const Trending = () => {
       <div className={styles.leftPanel}>
         <Card title="技术栈" bordered={false} className={styles.tagCard}>
           <div className={styles.tagList}>
-            {platforms.map((platform) => (
+            {techStacks.map((tag) => (
               <div
-                key={platform}
-                className={`${styles.tagItem} ${selectedPlatform === platform ? styles.active : ""}`}
-                onClick={() => setSelectedPlatform(platform)}
+                key={tag}
+                className={`${styles.tagItem} ${selectedTag === tag ? styles.active : ""}`}
+                onClick={() => setSelectedTag(tag)}
               >
-                {platform}
+                {tag}
               </div>
             ))}
           </div>
@@ -71,7 +72,7 @@ const Trending = () => {
       </div>
       <div className={styles.rightPanel}>
         <Card
-          title={`${selectedPlatform} 热榜`}
+          title={`${selectedTag} 热榜`}
           bordered={false}
           className={styles.articleCard}
         >
@@ -104,7 +105,7 @@ const Trending = () => {
                               <span>🔥 {formatNumber(item.hot || 0)}</span>
                             </div>
                             <div className={styles.tags}>
-                              <Tag>{item.source || selectedPlatform}</Tag>
+                              <Tag>{item.source || "未知来源"}</Tag>
                               <Tag>{item.tag || "综合"}</Tag>
                             </div>
                           </div>

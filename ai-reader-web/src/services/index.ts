@@ -5,6 +5,12 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface RegisterPayload {
+  username: string;
+  password: string;
+  nickname?: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   user: {
@@ -33,6 +39,9 @@ export interface SubscribeResponse {
 
 export const loginApi = (payload: LoginPayload) =>
   apiClient.post<unknown, LoginResponse>("/auth/login", payload);
+
+export const registerApi = (payload: RegisterPayload) =>
+  apiClient.post<unknown, LoginResponse>("/auth/register", payload);
 
 export const getHotArticlesApi = (params?: { platform?: string; tag?: string }) =>
   apiClient.get<unknown, BackendArticle[]>("/articles/hot", { params });
