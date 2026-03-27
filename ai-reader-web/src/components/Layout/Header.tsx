@@ -10,7 +10,7 @@ const Header = () => {
 
   const handleSearch = (value: string) => {
     if (value.trim()) {
-      navigate(`/trending?tag=${encodeURIComponent(value.trim())}`);
+      navigate(`/search?q=${encodeURIComponent(value.trim())}`);
     }
   };
 

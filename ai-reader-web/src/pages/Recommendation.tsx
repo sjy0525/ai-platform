@@ -63,7 +63,6 @@ const Recommendation = () => {
                             </span>
                           </div>
                           <div className={styles.tags}>
-                            <Tag>{item.source || "未知来源"}</Tag>
                             <Tag>{item.tag || "综合"}</Tag>
                           </div>
                         </div>

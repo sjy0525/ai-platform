@@ -186,15 +186,11 @@ const Subscription = () => {
                             </Button>
                           )}
                         </div>
-                        <p className={styles.articleExcerpt}>
-                          {item.source || "未知来源"} · {item.tag || "综合"}
-                        </p>
                         <div className={styles.articleMeta}>
                           <span>{item.author || "匿名作者"}</span>
                           <span>🔥 {formatNumber(item.hot || 0)}</span>
                         </div>
                         <div className={styles.tags}>
-                          <Tag>{item.source || "未知来源"}</Tag>
                           <Tag>{item.tag || "综合"}</Tag>
                         </div>
                       </div>

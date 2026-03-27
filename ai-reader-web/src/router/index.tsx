@@ -8,6 +8,7 @@ import Login from "../pages/User/Login";
 import Register from "../pages/User/Register";
 import User from "../pages/User/User";
 import Article from "../pages/article";
+import SearchResult from "../pages/SearchResult";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,11 @@ export const router = createBrowserRouter([
   {
     path: "/trending",
     element: <Trending />,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/search",
+    element: <SearchResult />,
     errorElement: <ErrorBoundary />,
   },
   {
