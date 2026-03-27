@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import SearchBox from "./SearchBox";
 import { useUserStore } from "../../store/user";
@@ -6,10 +6,12 @@ import styles from "../../styles/Home/Header.module.css";
 
 const Header = () => {
   const { isLoggedIn } = useUserStore();
+  const navigate = useNavigate();
 
   const handleSearch = (value: string) => {
-    console.log("搜索:", value);
-    // TODO: 实现搜索逻辑
+    if (value.trim()) {
+      navigate(`/trending?tag=${encodeURIComponent(value.trim())}`);
+    }
   };
 
   return (

@@ -1,26 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, Card, List, Tag, Empty, message, Spin, Button } from "antd";
-import { getSubscribeArticlesApi, type BackendArticle } from "../services";
+import {
+  getSubscribeArticlesApi,
+  updateKeywordsApi,
+  collectArticleApi,
+  type BackendArticle,
+} from "../services";
+import { useUserStore } from "../store/user";
 import styles from "../styles/Subscription.module.css";
 
 const recommendedTags = [
   "前端",
   "后端",
   "面试",
-  "JavaScript",
   "AI编程",
-  "Cursor",
-  "AIGC",
   "架构",
   "Android",
-  "程序员",
 ];
 
 const Subscription = () => {
+  const { userInfo, isLoggedIn, setUserInfo } = useUserStore();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [matchedArticles, setMatchedArticles] = useState<BackendArticle[]>([]);
   const [loading, setLoading] = useState(false);
-  const [subscribedArticleIds, setSubscribedArticleIds] = useState<string[]>([]);
+  const [savingKeywords, setSavingKeywords] = useState(false);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (userInfo?.subscribedKeywords?.length) {
+      setSelectedTags(userInfo.subscribedKeywords);
+    }
+    if (userInfo?.collectedArticleIds?.length) {
+      setCollectedIds(new Set(userInfo.collectedArticleIds));
+    }
+  }, [userInfo]);
 
   const formatNumber = (num: number): string => {
     if (num >= 10000) return `${(num / 10000).toFixed(1)}k`;
@@ -33,15 +46,22 @@ const Subscription = () => {
       return;
     }
 
-    const keyword = tags[0];
-    if (tags.length > 1) {
-      message.info("当前最小版本仅按第一个标签匹配订阅文章");
-    }
-
     try {
       setLoading(true);
-      const res = await getSubscribeArticlesApi(keyword);
-      setMatchedArticles(res.articles || []);
+      const results = await Promise.all(
+        tags.map((tag) => getSubscribeArticlesApi(tag))
+      );
+      const seen = new Set<string>();
+      const merged: BackendArticle[] = [];
+      for (const res of results) {
+        for (const article of res.articles || []) {
+          if (!seen.has(article.id)) {
+            seen.add(article.id);
+            merged.push(article);
+          }
+        }
+      }
+      setMatchedArticles(merged);
     } catch (error) {
       console.error("获取订阅文章失败:", error);
       message.error("获取订阅文章失败，请先确认已登录");
@@ -56,62 +76,50 @@ const Subscription = () => {
     void fetchMatchingArticles(tags);
   };
 
-  const getArticleSummary = (article: BackendArticle): string => {
-    const source = article.source || "未知来源";
-    const tag = article.tag || "综合";
-    return `${source} · ${tag}`;
+  const handleSaveKeywords = async () => {
+    if (!isLoggedIn) {
+      message.warning("请先登录");
+      return;
+    }
+    try {
+      setSavingKeywords(true);
+      await updateKeywordsApi(selectedTags);
+      if (userInfo) {
+        setUserInfo({ ...userInfo, subscribedKeywords: selectedTags });
+      }
+      message.success("订阅已保存");
+    } catch {
+      message.error("保存订阅失败");
+    } finally {
+      setSavingKeywords(false);
+    }
+  };
+
+  const handleCollect = async (article: BackendArticle) => {
+    if (!isLoggedIn) {
+      message.warning("请先登录");
+      return;
+    }
+    if (collectedIds.has(article.id)) {
+      message.info("已收藏");
+      return;
+    }
+    try {
+      const res = await collectArticleApi(article.id);
+      setCollectedIds(new Set(res.collectedArticleIds));
+      if (userInfo) {
+        setUserInfo({ ...userInfo, collectedArticleIds: res.collectedArticleIds });
+      }
+      message.success("已收藏");
+    } catch {
+      message.error("收藏失败");
+    }
   };
 
   const hasSelectedTags = selectedTags.length > 0;
-
   const emptyText = hasSelectedTags
     ? "暂无匹配的文章（请确认已登录且后端有可用数据）"
     : "请先选择感兴趣的标签";
-
-  const getArticleLink = (article: BackendArticle): string => {
-    return article.mobileUrl || article.url || "#";
-  };
-
-  const getArticleHot = (article: BackendArticle): number => {
-    return article.hot || 0;
-  };
-
-  const getArticleAuthor = (article: BackendArticle): string => {
-    return article.author || "匿名作者";
-  };
-
-  const getArticleTag = (article: BackendArticle): string => {
-    return article.tag || "综合";
-  };
-
-  const getArticleSource = (article: BackendArticle): string => {
-    return article.source || "未知来源";
-  };
-
-  const getArticleTitle = (article: BackendArticle): string => {
-    return article.title || "无标题";
-  };
-
-  const getArticleId = (article: BackendArticle): string => {
-    return article.id || Math.random().toString(36).slice(2);
-  };
-
-  const getArticleList = () => {
-    if (selectedTags.length === 0) return [];
-    return matchedArticles.slice(0, 3);
-  };
-
-  const handleSubscribeByArticle = (article: BackendArticle) => {
-    const articleId = getArticleId(article);
-    if (subscribedArticleIds.includes(articleId)) {
-      message.info("已订阅");
-      return;
-    }
-    setSubscribedArticleIds((prev) => [...prev, articleId]);
-    message.success("已订阅");
-  };
-
-  const displayArticles = getArticleList();
 
   return (
     <div className={styles.container}>
@@ -126,31 +134,43 @@ const Subscription = () => {
             options={recommendedTags.map((tag) => ({ value: tag, label: tag }))}
             tokenSeparators={[","]}
           />
+          <Button
+            type="primary"
+            block
+            style={{ marginTop: 12 }}
+            onClick={handleSaveKeywords}
+            loading={savingKeywords}
+            disabled={selectedTags.length === 0}
+          >
+            保存订阅
+          </Button>
         </Card>
       </div>
       <div className={styles.rightPanel}>
         <Card
-          title={`匹配的文章 (最多3篇)`}
+          title="匹配的文章"
           bordered={false}
           className={styles.articleCard}
         >
           <Spin spinning={loading}>
-            {displayArticles.length > 0 ? (
+            {matchedArticles.length > 0 ? (
               <List
-                dataSource={displayArticles}
+                dataSource={matchedArticles}
                 renderItem={(item) => (
                   <List.Item>
                     <a
-                      href={getArticleLink(item)}
+                      href={item.mobileUrl || item.url || "#"}
                       target="_blank"
                       rel="noreferrer"
                       className={styles.articleLink}
                     >
                       <div className={styles.articleItem}>
                         <div className={styles.titleRow}>
-                          <h4 className={styles.articleTitle}>{getArticleTitle(item)}</h4>
-                          {subscribedArticleIds.includes(getArticleId(item)) ? (
-                            <span className={styles.subscribedText}>已订阅</span>
+                          <h4 className={styles.articleTitle}>
+                            {item.title || "无标题"}
+                          </h4>
+                          {collectedIds.has(item.id) ? (
+                            <span className={styles.subscribedText}>已收藏</span>
                           ) : (
                             <Button
                               type="text"
@@ -159,23 +179,23 @@ const Subscription = () => {
                               onClick={(event) => {
                                 event.preventDefault();
                                 event.stopPropagation();
-                                handleSubscribeByArticle(item);
+                                handleCollect(item);
                               }}
                             >
                               +
                             </Button>
                           )}
                         </div>
-                        <p className={styles.articleExcerpt}>{getArticleSummary(item)}</p>
+                        <p className={styles.articleExcerpt}>
+                          {item.source || "未知来源"} · {item.tag || "综合"}
+                        </p>
                         <div className={styles.articleMeta}>
-                          <span>{getArticleAuthor(item)}</span>
-                          <span>🔥 {formatNumber(getArticleHot(item))}</span>
+                          <span>{item.author || "匿名作者"}</span>
+                          <span>🔥 {formatNumber(item.hot || 0)}</span>
                         </div>
                         <div className={styles.tags}>
-                          <Tag key={`${getArticleId(item)}-source`}>
-                            {getArticleSource(item)}
-                          </Tag>
-                          <Tag key={`${getArticleId(item)}-tag`}>{getArticleTag(item)}</Tag>
+                          <Tag>{item.source || "未知来源"}</Tag>
+                          <Tag>{item.tag || "综合"}</Tag>
                         </div>
                       </div>
                     </a>

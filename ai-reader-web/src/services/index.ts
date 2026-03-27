@@ -48,3 +48,25 @@ export const getHotArticlesApi = (params?: { platform?: string; tag?: string }) 
 
 export const getSubscribeArticlesApi = (keyword: string) =>
   apiClient.post<unknown, SubscribeResponse>("/articles/subscribe", { keyword });
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  nickname: string;
+  avatar?: string;
+  subscribedKeywords: string[];
+  collectedArticleIds: string[];
+  collectedArticles: BackendArticle[];
+}
+
+export const getUserProfileApi = () =>
+  apiClient.get<unknown, UserProfile>("/user/profile");
+
+export const updateKeywordsApi = (keywords: string[]) =>
+  apiClient.put<unknown, { subscribedKeywords: string[] }>("/user/keywords", { keywords });
+
+export const collectArticleApi = (articleId: string) =>
+  apiClient.post<unknown, { collectedArticleIds: string[] }>(`/user/collect/${articleId}`);
+
+export const uncollectArticleApi = (articleId: string) =>
+  apiClient.delete<unknown, { collectedArticleIds: string[] }>(`/user/collect/${articleId}`);

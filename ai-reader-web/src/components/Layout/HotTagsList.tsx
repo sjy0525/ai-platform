@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Card } from "antd";
-import { allTags } from "../../data/mockArticles";
 import styles from "../../styles/Home/HotTagsList.module.css";
+
+const allTags = ["前端", "后端", "AI编程", "Android", "架构", "面试"];
 
 const HotTagsList = () => {
   const navigate = useNavigate();

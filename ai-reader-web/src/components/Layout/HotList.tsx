@@ -1,35 +1,36 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { getHotArticlesApi, type BackendArticle } from "../../services";
 import styles from "../../styles/Home/HotList.module.css";
 
-interface Article {
-  id: number;
-  title: string;
-}
-
-const mockArticles: Article[] = [
-  { id: 1, title: "2026 春晚魔术大揭秘:作为..." },
-  { id: 2, title: "Claude Code 已经100%自..." },
-  { id: 3, title: "丰田正在使用 Flutter 开发游..." },
-  { id: 4, title: "我给Mac做了一个 Windows ..." },
-  { id: 5, title: "你知道不,你现在给AI用的..." },
-];
-
 const HotList = () => {
+  const [allArticles, setAllArticles] = useState<BackendArticle[]>([]);
+  const [displayOffset, setDisplayOffset] = useState(0);
+
+  useEffect(() => {
+    getHotArticlesApi()
+      .then((data) => setAllArticles(data))
+      .catch((err) => console.error("获取热榜失败:", err));
+  }, []);
+
+  const displayArticles = allArticles.slice(displayOffset, displayOffset + 5);
+
   const handleRefresh = () => {
-    console.log("刷新文章热榜");
-    // TODO: 实现刷新逻辑
+    if (allArticles.length <= 5) return;
+    const maxOffset = allArticles.length - 5;
+    setDisplayOffset(Math.floor(Math.random() * maxOffset));
   };
 
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return "#ff4757"; // 红色
+        return "#ff4757";
       case 2:
-        return "#ff6348"; // 橙色
+        return "#ff6348";
       case 3:
-        return "#ffa502"; // 黄色/金色
+        return "#ffa502";
       default:
-        return "#999"; // 灰色
+        return "#999";
     }
   };
 
@@ -46,12 +47,14 @@ const HotList = () => {
         </div>
       </div>
       <div className={styles.list}>
-        {mockArticles.map((article, index) => {
+        {displayArticles.map((article, index) => {
           const rank = index + 1;
           return (
-            <Link
+            <a
               key={article.id}
-              to={`/article/${article.id}`}
+              href={article.mobileUrl || article.url}
+              target="_blank"
+              rel="noreferrer"
               className={styles.item}
             >
               <span
@@ -61,7 +64,7 @@ const HotList = () => {
                 {rank}
               </span>
               <span className={styles.title}>{article.title}</span>
-            </Link>
+            </a>
           );
         })}
       </div>
@@ -75,4 +78,3 @@ const HotList = () => {
 };
 
 export default HotList;
-

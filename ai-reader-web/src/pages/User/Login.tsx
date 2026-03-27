@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Form, Input, Button, Card, Checkbox, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/user";
-import { loginApi } from "../../services";
+import { loginApi, getUserProfileApi } from "../../services";
 import styles from "../../styles/User/Login.module.css";
 
 const Login = () => {
@@ -19,11 +19,25 @@ const Login = () => {
         password: values.password,
       });
       localStorage.setItem("token", res.access_token);
-      login({
-        id: res.user.id,
-        nickname: res.user.nickname || res.user.username || "AI读者",
-        avatar: res.user.avatar,
-      });
+      try {
+        const profile = await getUserProfileApi();
+        login({
+          id: profile.id,
+          username: profile.username,
+          nickname: profile.nickname || res.user.nickname || res.user.username || "AI读者",
+          avatar: profile.avatar || res.user.avatar,
+          subscribedKeywords: profile.subscribedKeywords || [],
+          collectedArticleIds: profile.collectedArticleIds || [],
+        });
+      } catch {
+        login({
+          id: res.user.id,
+          nickname: res.user.nickname || res.user.username || "AI读者",
+          avatar: res.user.avatar,
+          subscribedKeywords: [],
+          collectedArticleIds: [],
+        });
+      }
       message.success("登录成功");
       navigate("/");
     } catch (error) {
