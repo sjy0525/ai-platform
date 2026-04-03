@@ -9,6 +9,7 @@ export interface UserInfo {
   email?: string;
   subscribedKeywords: string[];
   collectedArticleIds: string[];
+  subscribedColumnIds: string[];
 }
 
 interface UserState {
@@ -43,6 +44,7 @@ export const useUserStore = create<UserState>((set) => ({
           avatar: profile.avatar,
           subscribedKeywords: profile.subscribedKeywords || [],
           collectedArticleIds: profile.collectedArticleIds || [],
+          subscribedColumnIds: profile.subscribedColumnIds || [],
         },
       });
     } catch {

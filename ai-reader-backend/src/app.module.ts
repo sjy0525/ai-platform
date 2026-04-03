@@ -8,8 +8,10 @@ import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ArticleModule } from './modules/article/article.module';
+import { ColumnModule } from './modules/column/column.module';
 import { User } from './entities/user.entity';
 import { Article } from './entities/article.entity';
+import { TechColumn } from './entities/column.entity';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { Article } from './entities/article.entity';
         username: configService.get('DB_USERNAME') || 'root',
         password: configService.get('DB_PASSWORD') || '',
         database: configService.get('DB_DATABASE') || 'ai_reader',
-        entities: [User, Article],
+        entities: [User, Article, TechColumn],
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
@@ -35,6 +37,7 @@ import { Article } from './entities/article.entity';
     AuthModule,
     UserModule,
     ArticleModule,
+    ColumnModule,
   ],
   controllers: [AppController],
 })

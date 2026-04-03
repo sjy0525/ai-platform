@@ -31,6 +31,10 @@ export class User {
   @Column({ type: 'json', nullable: true })
   collectedArticleIds: string[] | null;
 
+  /** 订阅的专栏 ID 列表，JSON 存储 */
+  @Column({ type: 'json', nullable: true })
+  subscribedColumnIds: string[] | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

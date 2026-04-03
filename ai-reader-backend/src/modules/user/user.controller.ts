@@ -1,6 +1,7 @@
 import { Controller, Get, Put, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ArticleService } from '../article/article.service';
+import { ColumnService } from '../column/column.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -9,6 +10,7 @@ export class UserController {
   constructor(
     private userService: UserService,
     private articleService: ArticleService,
+    private columnService: ColumnService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -21,6 +23,8 @@ export class UserController {
     const collectedArticles = collectedArticleIds.length > 0
       ? await this.articleService.findByIds(collectedArticleIds)
       : [];
+    const subscribedColumnIds = result.subscribedColumnIds || [];
+    const subscribedColumns = await this.columnService.findByIds(subscribedColumnIds);
     return {
       id: result.id,
       username: result.username,
@@ -29,6 +33,8 @@ export class UserController {
       subscribedKeywords: result.subscribedKeywords || [],
       collectedArticleIds,
       collectedArticles,
+      subscribedColumnIds,
+      subscribedColumns,
     };
   }
 
@@ -63,5 +69,27 @@ export class UserController {
     await this.userService.removeCollectedArticle(user.id, articleId);
     const u = await this.userService.findById(user.id);
     return { collectedArticleIds: u?.collectedArticleIds || [] };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('subscribe-column/:columnId')
+  async subscribeColumn(
+    @CurrentUser() user: { id: string },
+    @Param('columnId') columnId: string,
+  ) {
+    await this.userService.addSubscribedColumn(user.id, columnId);
+    const u = await this.userService.findById(user.id);
+    return { subscribedColumnIds: u?.subscribedColumnIds || [] };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('subscribe-column/:columnId')
+  async unsubscribeColumn(
+    @CurrentUser() user: { id: string },
+    @Param('columnId') columnId: string,
+  ) {
+    await this.userService.removeSubscribedColumn(user.id, columnId);
+    const u = await this.userService.findById(user.id);
+    return { subscribedColumnIds: u?.subscribedColumnIds || [] };
   }
 }

@@ -66,4 +66,23 @@ export class UserService {
     await this.userRepository.update(userId, { collectedArticleIds: ids });
     return this.findById(userId) as Promise<User>;
   }
+
+  async addSubscribedColumn(userId: string, columnId: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) return null as unknown as User;
+    const ids = user.subscribedColumnIds || [];
+    if (!ids.includes(columnId)) {
+      ids.push(columnId);
+      await this.userRepository.update(userId, { subscribedColumnIds: ids });
+    }
+    return this.findById(userId) as Promise<User>;
+  }
+
+  async removeSubscribedColumn(userId: string, columnId: string): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) return null as unknown as User;
+    const ids = (user.subscribedColumnIds || []).filter((id) => id !== columnId);
+    await this.userRepository.update(userId, { subscribedColumnIds: ids });
+    return this.findById(userId) as Promise<User>;
+  }
 }

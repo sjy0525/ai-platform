@@ -49,6 +49,14 @@ export const getHotArticlesApi = (params?: { platform?: string; tag?: string }) 
 export const getSubscribeArticlesApi = (keyword: string) =>
   apiClient.post<unknown, SubscribeResponse>("/articles/subscribe", { keyword });
 
+export interface TechColumn {
+  id: string;
+  name: string;
+  keyword: string;
+  description: string;
+  createdAt: string;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -57,6 +65,8 @@ export interface UserProfile {
   subscribedKeywords: string[];
   collectedArticleIds: string[];
   collectedArticles: BackendArticle[];
+  subscribedColumnIds: string[];
+  subscribedColumns: TechColumn[];
 }
 
 export const getUserProfileApi = () =>
@@ -70,3 +80,15 @@ export const collectArticleApi = (articleId: string) =>
 
 export const uncollectArticleApi = (articleId: string) =>
   apiClient.delete<unknown, { collectedArticleIds: string[] }>(`/user/collect/${articleId}`);
+
+export const searchColumnsApi = (q: string) =>
+  apiClient.get<unknown, TechColumn[]>('/columns/search', { params: { q } });
+
+export const getColumnArticlesApi = (columnId: string) =>
+  apiClient.get<unknown, BackendArticle[]>(`/columns/${columnId}/articles`);
+
+export const subscribeColumnApi = (columnId: string) =>
+  apiClient.post<unknown, { subscribedColumnIds: string[] }>(`/user/subscribe-column/${columnId}`);
+
+export const unsubscribeColumnApi = (columnId: string) =>
+  apiClient.delete<unknown, { subscribedColumnIds: string[] }>(`/user/subscribe-column/${columnId}`);
