@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, List, Tag, Spin, Empty, message } from "antd";
 import { getHotArticlesApi, type BackendArticle } from "../services";
 import styles from "../styles/Trending.module.css";
@@ -7,6 +7,7 @@ import styles from "../styles/Trending.module.css";
 const techStacks = ["全部", "前端", "后端", "AI编程", "Android", "架构", "面试"];
 
 const Trending = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tagFromUrl = searchParams.get("tag");
   const [selectedTag, setSelectedTag] = useState<string>(
@@ -82,14 +83,12 @@ const Trending = () => {
                 dataSource={articles}
                 renderItem={(item, index) => {
                   const rank = index + 1;
-                  const articleUrl = item.mobileUrl || item.url;
                   return (
                     <List.Item key={`${item.id}-${index}`} className={styles.listItem}>
-                      <a
-                        href={articleUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                      <div
+                        onClick={() => navigate(`/article/${item.id}`)}
                         className={styles.articleLink}
+                        style={{ cursor: "pointer" }}
                       >
                         <div className={styles.articleItem}>
                           <span
@@ -109,7 +108,7 @@ const Trending = () => {
                             </div>
                           </div>
                         </div>
-                      </a>
+                      </div>
                     </List.Item>
                   );
                 }}

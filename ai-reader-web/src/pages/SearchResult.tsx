@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, List, Tag, Spin, Empty, Input, Button, message } from "antd";
 import {
   getSubscribeArticlesApi,
@@ -17,6 +17,7 @@ import styles from "../styles/SearchResult.module.css";
 const { Search } = Input;
 
 const SearchResult = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const { isLoggedIn, userInfo, setUserInfo } = useUserStore();
@@ -171,11 +172,10 @@ const SearchResult = () => {
               dataSource={articles}
               renderItem={(item) => (
                 <List.Item className={styles.listItem}>
-                  <a
-                    href={item.mobileUrl || item.url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <div
+                    onClick={() => navigate(`/article/${item.id}`)}
                     className={styles.articleLink}
+                    style={{ cursor: "pointer" }}
                   >
                     <div className={styles.articleContent}>
                       <div className={styles.titleRow}>
@@ -203,7 +203,7 @@ const SearchResult = () => {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </div>
                 </List.Item>
               )}
             />

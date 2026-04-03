@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -27,6 +27,19 @@ export class ArticleController {
       3,
     );
     return { articles };
+  }
+
+  /** 查询单篇文章元信息 */
+  @Get(':id')
+  async getOne(@Param('id') id: string) {
+    const articles = await this.articleService.findByIds([id]);
+    return articles[0] ?? null;
+  }
+
+  /** 抓取文章正文内容 */
+  @Get(':id/content')
+  async getContent(@Param('id') id: string) {
+    return this.articleService.fetchContent(id);
   }
 
   /** 手动触发热榜同步（也可由定时任务执行） */

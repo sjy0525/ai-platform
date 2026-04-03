@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { List, Tag, Card, Spin, Empty, Button, message } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getUserProfileApi, uncollectArticleApi, type BackendArticle } from "../services";
 import { useUserStore } from "../store/user";
 import styles from "../styles/Favorite.module.css";
 
 const Favorite = () => {
   const { isLoggedIn } = useUserStore();
+  const navigate = useNavigate();
   const [collectedArticles, setCollectedArticles] = useState<BackendArticle[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -77,11 +78,10 @@ const Favorite = () => {
                     </Button>,
                   ]}
                 >
-                  <a
-                    href={item.mobileUrl || item.url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <div
+                    onClick={() => navigate(`/article/${item.id}`)}
                     className={styles.articleLink}
+                    style={{ cursor: "pointer" }}
                   >
                     <div className={styles.articleContent}>
                       <h4 className={styles.articleTitle}>{item.title}</h4>
@@ -95,7 +95,7 @@ const Favorite = () => {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </div>
                 </List.Item>
               )}
             />

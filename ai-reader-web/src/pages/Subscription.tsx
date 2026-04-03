@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, List, Tag, Empty, message, Spin, Button, Collapse } from "antd";
 import {
   getColumnArticlesApi,
@@ -14,6 +14,7 @@ import styles from "../styles/Subscription.module.css";
 const { Panel } = Collapse;
 
 const Subscription = () => {
+  const navigate = useNavigate();
   const { userInfo, isLoggedIn, setUserInfo } = useUserStore();
   const [subscribedColumns, setSubscribedColumns] = useState<TechColumn[]>([]);
   const [columnArticles, setColumnArticles] = useState<Record<string, BackendArticle[]>>({});
@@ -129,11 +130,10 @@ const Subscription = () => {
                       dataSource={columnArticles[col.id]}
                       renderItem={(item) => (
                         <List.Item className={styles.listItem}>
-                          <a
-                            href={item.mobileUrl || item.url}
-                            target="_blank"
-                            rel="noreferrer"
+                          <div
+                            onClick={() => navigate(`/article/${item.id}`)}
                             className={styles.articleLink}
+                            style={{ cursor: "pointer" }}
                           >
                             <div className={styles.articleItem}>
                               <h4 className={styles.articleTitle}>{item.title}</h4>
@@ -145,7 +145,7 @@ const Subscription = () => {
                                 <Tag>{item.tag || "综合"}</Tag>
                               </div>
                             </div>
-                          </a>
+                          </div>
                         </List.Item>
                       )}
                     />
