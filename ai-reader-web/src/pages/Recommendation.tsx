@@ -13,7 +13,8 @@ const Recommendation = () => {
     const fetchArticles = async () => {
       setLoading(true);
       try {
-        const data = await getHotArticlesApi();
+        const sort = activeTab === "latest" ? "latest" : undefined;
+        const data = await getHotArticlesApi({ sort });
         setArticles(data);
       } catch (err) {
         console.error("获取推荐文章失败:", err);
@@ -23,7 +24,7 @@ const Recommendation = () => {
       }
     };
     fetchArticles();
-  }, []);
+  }, [activeTab]);
 
   const formatNumber = (num: number): string => {
     if (num >= 10000) {

@@ -43,7 +43,7 @@ export const loginApi = (payload: LoginPayload) =>
 export const registerApi = (payload: RegisterPayload) =>
   apiClient.post<unknown, LoginResponse>("/auth/register", payload);
 
-export const getHotArticlesApi = (params?: { platform?: string; tag?: string }) =>
+export const getHotArticlesApi = (params?: { platform?: string; tag?: string; sort?: string }) =>
   apiClient.get<unknown, BackendArticle[]>("/articles/hot", { params });
 
 export const getSubscribeArticlesApi = (keyword: string) =>

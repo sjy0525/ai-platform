@@ -11,8 +11,9 @@ export class ArticleController {
   async getHotList(
     @Query('platform') platform?: string,
     @Query('tag') tag?: string,
+    @Query('sort') sort?: string,
   ) {
-    return this.articleService.getHotList(platform, tag);
+    return this.articleService.getHotList(platform, tag, sort);
   }
 
   /** 订阅文章：用户输入关键词，返回最符合的3篇文章（P2 工作流） */

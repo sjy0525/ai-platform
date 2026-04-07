@@ -1,10 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
+import * as cheerio from 'cheerio';
 import { Article } from '../../entities/article.entity';
 import { VectorService } from '../vector/vector.service';
 
 const HOT_API_BASE = 'https://api.pearktrue.cn/api/dailyhot/';
+
+const CONTENT_SELECTORS: Record<string, string> = {
+  'juejin.cn':     '.article-content, .markdown-body',
+  'csdn.net':      '#article_content, .article-content',
+  'cnblogs.com':   '#cnblogs_post_body',
+  'oschina.net':   '.article-detail, .content',
+  'segmentfault':  '.article-content, .article__content',
+  'infoq.cn':      '.article-preview, .article-detail',
+};
+const DEFAULT_SELECTOR = 'article, [class*="article"], [class*="content"], [class*="post"], main';
+const REMOVE_TAGS = ['script', 'style', 'iframe', 'noscript', 'aside', 'nav', 'footer', '[class*="ad"]', '[class*="recommend"]', '[class*="comment"]'];
 const HOT_PLATFORMS = ['稀土掘金', 'CSDN', '博客园', '开源中国'] as const;
 const ARTICLES_PER_TAG = 10;
 const HOT_TECH_TAGS = ['前端', '后端', 'AI编程', 'Android', '架构', '面试'] as const;
@@ -72,12 +84,16 @@ export interface HotArticleItem {
 }
 
 @Injectable()
-export class ArticleService {
+export class ArticleService implements OnModuleInit {
   constructor(
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     private vectorService: VectorService,
   ) {}
+
+  async onModuleInit() {
+    await this.syncHotToVector();
+  }
 
   /** 从第三方 API 获取热榜文章 */
   async fetchHotFromThirdParty(
@@ -146,10 +162,20 @@ export class ArticleService {
   }
 
   /** 获取热榜文章列表（供前端展示） */
-  async getHotList(platform?: string, tag?: string): Promise<Article[]> {
-    const qb = this.articleRepository.createQueryBuilder('a').orderBy('a.hot', 'DESC').take(50);
+  async getHotList(platform?: string, tag?: string, sort?: string): Promise<Article[]> {
+    const qb = this.articleRepository.createQueryBuilder('a').take(50);
+    // 只返回热榜同步的技术标签文章，防止订阅写入的文章混入
+    if (tag) {
+      qb.andWhere('a.tag = :tag', { tag });
+    } else {
+      qb.andWhere('a.tag IN (:...tags)', { tags: [...HOT_TECH_TAGS] });
+    }
     if (platform) qb.andWhere('a.source = :platform', { platform });
-    if (tag) qb.andWhere('a.tag = :tag', { tag });
+    if (sort === 'latest') {
+      qb.orderBy('a.createdAt', 'DESC');
+    } else {
+      qb.orderBy('a.hot', 'DESC');
+    }
     return qb.getMany();
   }
 
@@ -261,6 +287,66 @@ export class ArticleService {
   async findByIds(ids: string[]): Promise<Article[]> {
     if (ids.length === 0) return [];
     return this.articleRepository.find({ where: { id: In(ids) } });
+  }
+
+  async fetchContent(articleId: string): Promise<{ html: string; success: boolean }> {
+    const article = await this.articleRepository.findOne({ where: { id: articleId } });
+    if (!article) return { html: '', success: false };
+
+    const targetUrl = article.mobileUrl || article.url;
+    try {
+      const res = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          'Referer': new URL(targetUrl).origin,
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (!res.ok) return { html: '', success: false };
+      const rawHtml = await res.text();
+      const $ = cheerio.load(rawHtml);
+
+      // 移除干扰元素
+      REMOVE_TAGS.forEach((sel) => $(sel).remove());
+
+      // 按域名选对应选择器
+      const hostname = new URL(targetUrl).hostname;
+      const siteKey = Object.keys(CONTENT_SELECTORS).find((k) => hostname.includes(k));
+      const selector = siteKey ? CONTENT_SELECTORS[siteKey] : DEFAULT_SELECTOR;
+
+      let contentEl = $(selector).first();
+      if (!contentEl.length) {
+        // 兜底：取 body 内文字最多的 div
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let best: { len: number; el: any } = { len: 0, el: null };
+        $('div, section, article').each((_, el) => {
+          const text = $(el).text().trim().length;
+          if (text > best.len) { best = { len: text, el: $(el) }; }
+        });
+        contentEl = best.el ?? $('body');
+      }
+
+      // 修正相对路径图片
+      const origin = new URL(targetUrl).origin;
+      contentEl.find('img').each((_, img) => {
+        const src = $(img).attr('src') || $(img).attr('data-src');
+        if (src && src.startsWith('/')) $(img).attr('src', origin + src);
+        else if (src) $(img).attr('src', src);
+        $(img).removeAttr('data-src');
+      });
+
+      // 移除所有 a 标签的 onclick 和 href（防止跳出）
+      contentEl.find('a').each((_, a) => {
+        $(a).removeAttr('onclick').attr('target', '_blank').attr('rel', 'noreferrer');
+      });
+
+      return { html: contentEl.html() ?? '', success: true };
+    } catch {
+      return { html: '', success: false };
+    }
   }
 
   private cleanAndSelectByTag(rawArticles: HotArticleItem[]): HotArticleItem[] {
