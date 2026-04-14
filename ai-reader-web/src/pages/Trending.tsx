@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Card, List, Tag, Spin, Empty, message } from "antd";
-import { getHotArticlesApi, type BackendArticle } from "../services";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Card, List, Tag, Spin, Empty, message, Button } from "antd";
+import { getHotArticlesApi, collectArticleApi, uncollectArticleApi, type BackendArticle } from "../services";
+import { useUserStore } from "../store/user";
 import styles from "../styles/Trending.module.css";
 
 const techStacks = ["全部", "前端", "后端", "AI编程", "Android", "架构", "面试"];
 
 const Trending = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { isLoggedIn, userInfo, setUserInfo } = useUserStore();
   const tagFromUrl = searchParams.get("tag");
   const [selectedTag, setSelectedTag] = useState<string>(
     tagFromUrl && techStacks.includes(tagFromUrl)
@@ -16,12 +19,37 @@ const Trending = () => {
   );
   const [articles, setArticles] = useState<BackendArticle[]>([]);
   const [loading, setLoading] = useState(false);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (tagFromUrl && techStacks.includes(tagFromUrl)) {
       setSelectedTag(tagFromUrl);
     }
   }, [tagFromUrl]);
+
+  useEffect(() => {
+    setCollectedIds(new Set(userInfo?.collectedArticleIds || []));
+  }, [userInfo]);
+
+  const handleCollect = async (e: React.MouseEvent, article: BackendArticle) => {
+    e.stopPropagation();
+    if (!isLoggedIn) { message.warning("请先登录"); return; }
+    try {
+      if (collectedIds.has(article.id)) {
+        const res = await uncollectArticleApi(article.id);
+        setCollectedIds(new Set(res.collectedArticleIds));
+        if (userInfo) setUserInfo({ ...userInfo, collectedArticleIds: res.collectedArticleIds });
+        message.success("已取消收藏");
+      } else {
+        const res = await collectArticleApi(article.id);
+        setCollectedIds(new Set(res.collectedArticleIds));
+        if (userInfo) setUserInfo({ ...userInfo, collectedArticleIds: res.collectedArticleIds });
+        message.success("已收藏");
+      }
+    } catch {
+      message.error("操作失败");
+    }
+  };
 
   useEffect(() => {
     const fetchHotArticles = async () => {
@@ -82,14 +110,26 @@ const Trending = () => {
                 dataSource={articles}
                 renderItem={(item, index) => {
                   const rank = index + 1;
-                  const articleUrl = item.mobileUrl || item.url;
                   return (
-                    <List.Item key={`${item.id}-${index}`} className={styles.listItem}>
-                      <a
-                        href={articleUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                    <List.Item
+                      key={`${item.id}-${index}`}
+                      className={styles.listItem}
+                      actions={[
+                        <Button
+                          key="collect"
+                          type="text"
+                          size="small"
+                          style={collectedIds.has(item.id) ? { color: "#52c41a" } : undefined}
+                          onClick={(e) => handleCollect(e, item)}
+                        >
+                          {collectedIds.has(item.id) ? "已收藏" : "+ 收藏"}
+                        </Button>,
+                      ]}
+                    >
+                      <div
                         className={styles.articleLink}
+                        onClick={() => navigate(`/article/${encodeURIComponent(item.id)}`)}
+                        style={{ cursor: "pointer", flex: 1 }}
                       >
                         <div className={styles.articleItem}>
                           <span
@@ -109,7 +149,7 @@ const Trending = () => {
                             </div>
                           </div>
                         </div>
-                      </a>
+                      </div>
                     </List.Item>
                   );
                 }}

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, NotFoundException, UseGuards } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -35,5 +35,26 @@ export class ArticleController {
   async syncHot() {
     await this.articleService.syncHotToVector();
     return { success: true, message: '热榜同步完成' };
+  }
+
+  /** 根据 ID 获取文章元数据 */
+  @Get(':id')
+  async getArticleById(@Param('id') id: string) {
+    const article = await this.articleService.findById(id);
+    if (!article) throw new NotFoundException('文章不存在');
+    return article;
+  }
+
+  /** 抓取文章正文内容 */
+  @Get(':id/content')
+  async getArticleContent(@Param('id') id: string) {
+    const article = await this.articleService.findById(id);
+    if (!article) throw new NotFoundException('文章不存在');
+    try {
+      const content = await this.articleService.fetchArticleContent(article.url);
+      return { content };
+    } catch {
+      return { content: '' };
+    }
   }
 }

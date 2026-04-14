@@ -92,3 +92,9 @@ export const subscribeColumnApi = (columnId: string) =>
 
 export const unsubscribeColumnApi = (columnId: string) =>
   apiClient.delete<unknown, { subscribedColumnIds: string[] }>(`/user/subscribe-column/${columnId}`);
+
+export const getArticleApi = (id: string) =>
+  apiClient.get<unknown, BackendArticle>(`/articles/${encodeURIComponent(id)}`);
+
+export const getArticleContentApi = (id: string) =>
+  apiClient.get<unknown, { content: string }>(`/articles/${encodeURIComponent(id)}/content`);

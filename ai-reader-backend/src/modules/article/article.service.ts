@@ -4,6 +4,7 @@ import { Repository, In } from 'typeorm';
 import * as cheerio from 'cheerio';
 import { Article } from '../../entities/article.entity';
 import { VectorService } from '../vector/vector.service';
+import * as cheerio from 'cheerio';
 
 const HOT_API_BASE = 'https://api.pearktrue.cn/api/dailyhot/';
 
@@ -289,6 +290,7 @@ export class ArticleService implements OnModuleInit {
     return this.articleRepository.find({ where: { id: In(ids) } });
   }
 
+<<<<<<< HEAD
   async fetchContent(articleId: string): Promise<{ html: string; success: boolean }> {
     const article = await this.articleRepository.findOne({ where: { id: articleId } });
     if (!article) return { html: '', success: false };
@@ -347,6 +349,63 @@ export class ArticleService implements OnModuleInit {
     } catch {
       return { html: '', success: false };
     }
+=======
+  async findById(id: string): Promise<Article | null> {
+    return this.articleRepository.findOne({ where: { id } });
+  }
+
+  /** 抓取文章正文内容，返回清洗后的 HTML */
+  async fetchArticleContent(url: string): Promise<string> {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': new URL(url).origin,
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    // 移除干扰元素
+    $('script, style, nav, header, footer, .sidebar, .comment, .ad, .advertisement, [class*="recommend"], [class*="related"]').remove();
+
+    // 防盗链：所有图片不发送 Referer，绕过 CDN 来源检测
+    $('img').attr('referrerpolicy', 'no-referrer');
+
+    // 按平台匹配主体内容选择器
+    const platformSelectors: string[] = [];
+    if (url.includes('juejin.cn')) {
+      platformSelectors.push('.article-content', '.article-content-render', '.markdown-body');
+    } else if (url.includes('csdn.net')) {
+      platformSelectors.push('#article_content', '.blog-content-box', '.htmledit_views');
+    } else if (url.includes('cnblogs.com')) {
+      platformSelectors.push('#cnblogs_post_body', '.post-body');
+    } else if (url.includes('oschina.net')) {
+      platformSelectors.push('.article-detail-box', '.article-body');
+    }
+    // 通用选择器兜底
+    platformSelectors.push('article', 'main', '.content', '.post-content', '.entry-content', '#content');
+
+    for (const sel of platformSelectors) {
+      const el = $(sel);
+      if (el.length && el.text().trim().length > 200) {
+        return el.html() || '';
+      }
+    }
+
+    // 最终兜底：取最长的 div
+    let best = '';
+    $('div').each((_, el) => {
+      const text = $(el).text().trim();
+      if (text.length > best.length) {
+        best = $(el).html() || '';
+      }
+    });
+    return best;
+>>>>>>> 4b48f99 (新增后台管理页面)
   }
 
   private cleanAndSelectByTag(rawArticles: HotArticleItem[]): HotArticleItem[] {

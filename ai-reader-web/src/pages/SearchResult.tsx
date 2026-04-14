@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Card, List, Tag, Spin, Empty, Input, Button, message } from "antd";
 import {
   getSubscribeArticlesApi,
@@ -171,10 +171,8 @@ const SearchResult = () => {
               dataSource={articles}
               renderItem={(item) => (
                 <List.Item className={styles.listItem}>
-                  <a
-                    href={item.mobileUrl || item.url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <Link
+                    to={`/article/${encodeURIComponent(item.id)}`}
                     className={styles.articleLink}
                   >
                     <div className={styles.articleContent}>
@@ -203,7 +201,7 @@ const SearchResult = () => {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </List.Item>
               )}
             />

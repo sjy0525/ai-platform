@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, List, Tag, Empty, message, Spin, Button, Collapse } from "antd";
 import {
   getColumnArticlesApi,
   unsubscribeColumnApi,
   getUserProfileApi,
+  collectArticleApi,
+  uncollectArticleApi,
   type BackendArticle,
   type TechColumn,
 } from "../services";
@@ -15,15 +17,21 @@ const { Panel } = Collapse;
 
 const Subscription = () => {
   const { userInfo, isLoggedIn, setUserInfo } = useUserStore();
+  const navigate = useNavigate();
   const [subscribedColumns, setSubscribedColumns] = useState<TechColumn[]>([]);
   const [columnArticles, setColumnArticles] = useState<Record<string, BackendArticle[]>>({});
   const [loadingColumns, setLoadingColumns] = useState<Set<string>>(new Set());
   const [pageLoading, setPageLoading] = useState(false);
+  const [collectedIds, setCollectedIds] = useState<Set<string>>(new Set());
 
   const formatNumber = (num: number): string => {
     if (num >= 10000) return `${(num / 10000).toFixed(1)}k`;
     return num.toString();
   };
+
+  useEffect(() => {
+    setCollectedIds(new Set(userInfo?.collectedArticleIds || []));
+  }, [userInfo]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -32,6 +40,7 @@ const Subscription = () => {
       try {
         const profile = await getUserProfileApi();
         setSubscribedColumns(profile.subscribedColumns || []);
+        setCollectedIds(new Set(profile.collectedArticleIds || []));
       } catch {
         message.error("获取订阅专栏失败");
       } finally {
@@ -40,6 +49,26 @@ const Subscription = () => {
     };
     load();
   }, [isLoggedIn]);
+
+  const handleCollect = async (e: React.MouseEvent, article: BackendArticle) => {
+    e.stopPropagation();
+    if (!isLoggedIn) { message.warning("请先登录"); return; }
+    try {
+      if (collectedIds.has(article.id)) {
+        const res = await uncollectArticleApi(article.id);
+        setCollectedIds(new Set(res.collectedArticleIds));
+        if (userInfo) setUserInfo({ ...userInfo, collectedArticleIds: res.collectedArticleIds });
+        message.success("已取消收藏");
+      } else {
+        const res = await collectArticleApi(article.id);
+        setCollectedIds(new Set(res.collectedArticleIds));
+        if (userInfo) setUserInfo({ ...userInfo, collectedArticleIds: res.collectedArticleIds });
+        message.success("已收藏");
+      }
+    } catch {
+      message.error("操作失败");
+    }
+  };
 
   const loadColumnArticles = async (columnId: string) => {
     if (columnArticles[columnId]) return;
@@ -128,12 +157,24 @@ const Subscription = () => {
                     <List
                       dataSource={columnArticles[col.id]}
                       renderItem={(item) => (
-                        <List.Item className={styles.listItem}>
-                          <a
-                            href={item.mobileUrl || item.url}
-                            target="_blank"
-                            rel="noreferrer"
+                        <List.Item
+                          className={styles.listItem}
+                          actions={[
+                            <Button
+                              key="collect"
+                              type="text"
+                              size="small"
+                              style={collectedIds.has(item.id) ? { color: "#52c41a" } : undefined}
+                              onClick={(e) => handleCollect(e, item)}
+                            >
+                              {collectedIds.has(item.id) ? "已收藏" : "+ 收藏"}
+                            </Button>,
+                          ]}
+                        >
+                          <div
                             className={styles.articleLink}
+                            onClick={() => navigate(`/article/${encodeURIComponent(item.id)}`)}
+                            style={{ cursor: "pointer", flex: 1 }}
                           >
                             <div className={styles.articleItem}>
                               <h4 className={styles.articleTitle}>{item.title}</h4>
@@ -145,7 +186,7 @@ const Subscription = () => {
                                 <Tag>{item.tag || "综合"}</Tag>
                               </div>
                             </div>
-                          </a>
+                          </div>
                         </List.Item>
                       )}
                     />

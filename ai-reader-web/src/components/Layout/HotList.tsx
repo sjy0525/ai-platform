@@ -50,11 +50,9 @@ const HotList = () => {
         {displayArticles.map((article, index) => {
           const rank = index + 1;
           return (
-            <a
+            <Link
               key={article.id}
-              href={article.mobileUrl || article.url}
-              target="_blank"
-              rel="noreferrer"
+              to={`/article/${encodeURIComponent(article.id)}`}
               className={styles.item}
             >
               <span
@@ -64,7 +62,7 @@ const HotList = () => {
                 {rank}
               </span>
               <span className={styles.title}>{article.title}</span>
-            </a>
+            </Link>
           );
         })}
       </div>

@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { ArticleModule } from './modules/article/article.module';
 import { ColumnModule } from './modules/column/column.module';
+import { AiModule } from './modules/ai/ai.module';
 import { User } from './entities/user.entity';
 import { Article } from './entities/article.entity';
 import { TechColumn } from './entities/column.entity';
@@ -38,6 +39,7 @@ import { TechColumn } from './entities/column.entity';
     UserModule,
     ArticleModule,
     ColumnModule,
+    AiModule,
   ],
   controllers: [AppController],
 })

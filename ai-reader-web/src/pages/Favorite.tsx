@@ -77,10 +77,8 @@ const Favorite = () => {
                     </Button>,
                   ]}
                 >
-                  <a
-                    href={item.mobileUrl || item.url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <Link
+                    to={`/article/${encodeURIComponent(item.id)}`}
                     className={styles.articleLink}
                   >
                     <div className={styles.articleContent}>
@@ -95,7 +93,7 @@ const Favorite = () => {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </List.Item>
               )}
             />
