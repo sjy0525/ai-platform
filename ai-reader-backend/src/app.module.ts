@@ -13,6 +13,8 @@ import { AiModule } from './modules/ai/ai.module';
 import { User } from './entities/user.entity';
 import { Article } from './entities/article.entity';
 import { TechColumn } from './entities/column.entity';
+import { AnalyticsEvent } from './entities/analytics-event.entity';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { TechColumn } from './entities/column.entity';
         username: configService.get('DB_USERNAME') || 'root',
         password: configService.get('DB_PASSWORD') || '',
         database: configService.get('DB_DATABASE') || 'ai_reader',
-        entities: [User, Article, TechColumn],
+        entities: [User, Article, TechColumn, AnalyticsEvent],
         synchronize: configService.get('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
@@ -40,6 +42,7 @@ import { TechColumn } from './entities/column.entity';
     ArticleModule,
     ColumnModule,
     AiModule,
+    AdminModule,
   ],
   controllers: [AppController],
 })
