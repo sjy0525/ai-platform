@@ -5,10 +5,11 @@ import type {
   AdminUserItem,
   AnalyticsEventItem,
   OverviewData,
+  UserAnalyticsData,
 } from '../types';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api';
 
 function getAdminToken() {
   return localStorage.getItem('admin_token') || '';
@@ -35,8 +36,25 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || '请求失败');
+    const raw = await response.text();
+    let message = raw;
+
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as { message?: string | string[]; error?: string };
+        if (Array.isArray(parsed.message)) {
+          message = parsed.message.join('，');
+        } else if (typeof parsed.message === 'string' && parsed.message.trim()) {
+          message = parsed.message;
+        } else if (typeof parsed.error === 'string' && parsed.error.trim()) {
+          message = parsed.error;
+        }
+      } catch {
+        // Keep the raw text when the backend does not return JSON.
+      }
+    }
+
+    throw new Error(message || `请求失败 (${response.status})`);
   }
 
   if (response.status === 204) {
@@ -62,6 +80,9 @@ export const adminApi = {
   },
   getUsers() {
     return request<AdminUserItem[]>('/admin/users');
+  },
+  getUserAnalytics() {
+    return request<UserAnalyticsData>('/admin/user-analytics');
   },
   getArticles(params?: { q?: string; tag?: string; source?: string }) {
     const search = new URLSearchParams();

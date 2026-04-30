@@ -20,6 +20,7 @@ const User = () => {
           avatar: profile.avatar,
           subscribedKeywords: profile.subscribedKeywords || [],
           collectedArticleIds: profile.collectedArticleIds || [],
+          subscribedColumnIds: profile.subscribedColumnIds || [],
         });
       })
       .catch((err) => {

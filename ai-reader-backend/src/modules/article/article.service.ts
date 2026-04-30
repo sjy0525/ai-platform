@@ -4,7 +4,6 @@ import { Repository, In } from 'typeorm';
 import * as cheerio from 'cheerio';
 import { Article } from '../../entities/article.entity';
 import { VectorService } from '../vector/vector.service';
-import * as cheerio from 'cheerio';
 
 const HOT_API_BASE = 'https://api.pearktrue.cn/api/dailyhot/';
 
@@ -290,66 +289,6 @@ export class ArticleService implements OnModuleInit {
     return this.articleRepository.find({ where: { id: In(ids) } });
   }
 
-<<<<<<< HEAD
-  async fetchContent(articleId: string): Promise<{ html: string; success: boolean }> {
-    const article = await this.articleRepository.findOne({ where: { id: articleId } });
-    if (!article) return { html: '', success: false };
-
-    const targetUrl = article.mobileUrl || article.url;
-    try {
-      const res = await fetch(targetUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-          'Referer': new URL(targetUrl).origin,
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!res.ok) return { html: '', success: false };
-      const rawHtml = await res.text();
-      const $ = cheerio.load(rawHtml);
-
-      // 移除干扰元素
-      REMOVE_TAGS.forEach((sel) => $(sel).remove());
-
-      // 按域名选对应选择器
-      const hostname = new URL(targetUrl).hostname;
-      const siteKey = Object.keys(CONTENT_SELECTORS).find((k) => hostname.includes(k));
-      const selector = siteKey ? CONTENT_SELECTORS[siteKey] : DEFAULT_SELECTOR;
-
-      let contentEl = $(selector).first();
-      if (!contentEl.length) {
-        // 兜底：取 body 内文字最多的 div
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let best: { len: number; el: any } = { len: 0, el: null };
-        $('div, section, article').each((_, el) => {
-          const text = $(el).text().trim().length;
-          if (text > best.len) { best = { len: text, el: $(el) }; }
-        });
-        contentEl = best.el ?? $('body');
-      }
-
-      // 修正相对路径图片
-      const origin = new URL(targetUrl).origin;
-      contentEl.find('img').each((_, img) => {
-        const src = $(img).attr('src') || $(img).attr('data-src');
-        if (src && src.startsWith('/')) $(img).attr('src', origin + src);
-        else if (src) $(img).attr('src', src);
-        $(img).removeAttr('data-src');
-      });
-
-      // 移除所有 a 标签的 onclick 和 href（防止跳出）
-      contentEl.find('a').each((_, a) => {
-        $(a).removeAttr('onclick').attr('target', '_blank').attr('rel', 'noreferrer');
-      });
-
-      return { html: contentEl.html() ?? '', success: true };
-    } catch {
-      return { html: '', success: false };
-    }
-=======
   async findById(id: string): Promise<Article | null> {
     return this.articleRepository.findOne({ where: { id } });
   }
@@ -405,7 +344,6 @@ export class ArticleService implements OnModuleInit {
       }
     });
     return best;
->>>>>>> 4b48f99 (新增后台管理页面)
   }
 
   private cleanAndSelectByTag(rawArticles: HotArticleItem[]): HotArticleItem[] {

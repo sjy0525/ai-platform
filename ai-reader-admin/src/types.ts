@@ -62,4 +62,43 @@ export interface OverviewData {
   recentEvents: AnalyticsEventItem[];
 }
 
+export interface UserAnalyticsData {
+  summary: {
+    totalUsers: number;
+    newUsers7d: number;
+    oldUsers: number;
+    pageViews7d: number;
+    uniqueVisitors7d: number;
+    avgStaySeconds7d: number;
+    avgPvPerUv7d: number;
+  };
+  trafficTrend: Array<{
+    date: string;
+    pv: number;
+    uv: number;
+    avgStaySeconds: number;
+  }>;
+  growthTrend: Array<{
+    date: string;
+    newUsers: number;
+  }>;
+  topPages: Array<{ name: string; value: number }>;
+  conversionFunnel: Array<{
+    name: string;
+    value: number;
+    rateFromPrevious: number;
+    rateFromEntry: number;
+  }>;
+  userSnapshots: Array<{
+    id: string;
+    displayName: string;
+    handle: string;
+    keywordCount: number;
+    collectedArticleCount: number;
+    subscribedColumnCount: number;
+    segment: string;
+    createdAt: string;
+  }>;
+}
+
 export type AdminTab = 'overview' | 'users' | 'articles' | 'columns' | 'events';

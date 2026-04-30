@@ -4,6 +4,7 @@ import { ArticleService } from '../article/article.service';
 import { ColumnService } from '../column/column.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @Controller('user')
 export class UserController {
@@ -11,6 +12,7 @@ export class UserController {
     private userService: UserService,
     private articleService: ArticleService,
     private columnService: ColumnService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -45,6 +47,12 @@ export class UserController {
     @Body('keywords') keywords: string[],
   ) {
     await this.userService.updateKeywords(user.id, keywords || []);
+    await this.analyticsService.captureEventSafely({
+      event: 'user_update_keywords',
+      distinctId: user.id,
+      source: 'web_app',
+      properties: { keywordsCount: keywords?.length || 0 },
+    });
     const u = await this.userService.findById(user.id);
     return { subscribedKeywords: u?.subscribedKeywords || [] };
   }
@@ -56,6 +64,12 @@ export class UserController {
     @Param('articleId') articleId: string,
   ) {
     await this.userService.addCollectedArticle(user.id, articleId);
+    await this.analyticsService.captureEventSafely({
+      event: 'user_collect_article',
+      distinctId: user.id,
+      source: 'web_app',
+      properties: { articleId },
+    });
     const u = await this.userService.findById(user.id);
     return { collectedArticleIds: u?.collectedArticleIds || [] };
   }
@@ -67,6 +81,12 @@ export class UserController {
     @Param('articleId') articleId: string,
   ) {
     await this.userService.removeCollectedArticle(user.id, articleId);
+    await this.analyticsService.captureEventSafely({
+      event: 'user_uncollect_article',
+      distinctId: user.id,
+      source: 'web_app',
+      properties: { articleId },
+    });
     const u = await this.userService.findById(user.id);
     return { collectedArticleIds: u?.collectedArticleIds || [] };
   }
@@ -78,6 +98,12 @@ export class UserController {
     @Param('columnId') columnId: string,
   ) {
     await this.userService.addSubscribedColumn(user.id, columnId);
+    await this.analyticsService.captureEventSafely({
+      event: 'user_subscribe_column',
+      distinctId: user.id,
+      source: 'web_app',
+      properties: { columnId },
+    });
     const u = await this.userService.findById(user.id);
     return { subscribedColumnIds: u?.subscribedColumnIds || [] };
   }
@@ -89,6 +115,12 @@ export class UserController {
     @Param('columnId') columnId: string,
   ) {
     await this.userService.removeSubscribedColumn(user.id, columnId);
+    await this.analyticsService.captureEventSafely({
+      event: 'user_unsubscribe_column',
+      distinctId: user.id,
+      source: 'web_app',
+      properties: { columnId },
+    });
     const u = await this.userService.findById(user.id);
     return { subscribedColumnIds: u?.subscribedColumnIds || [] };
   }

@@ -5,14 +5,14 @@ import type {
   AdminArticleItem,
   AdminColumnItem,
   AdminTab,
-  AdminUserItem,
   AnalyticsEventItem,
   OverviewData,
+  UserAnalyticsData,
 } from './types';
 
 const tabLabels: Record<AdminTab, string> = {
   overview: '数据总览',
-  users: '用户管理',
+  users: '用户分析',
   articles: '文章管理',
   columns: '专栏管理',
   events: '埋点日志',
@@ -37,7 +37,7 @@ function App() {
   const [notice, setNotice] = useState('');
 
   const [overview, setOverview] = useState<OverviewData | null>(null);
-  const [users, setUsers] = useState<AdminUserItem[]>([]);
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalyticsData | null>(null);
   const [articles, setArticles] = useState<AdminArticleItem[]>([]);
   const [columns, setColumns] = useState<AdminColumnItem[]>([]);
   const [events, setEvents] = useState<AnalyticsEventItem[]>([]);
@@ -77,8 +77,8 @@ function App() {
       }
 
       if (tab === 'users') {
-        const data = await adminApi.getUsers();
-        setUsers(data);
+        const data = await adminApi.getUserAnalytics();
+        setUserAnalytics(data);
       }
 
       if (tab === 'articles') {
@@ -146,7 +146,7 @@ function App() {
     setToken('');
     setAdminName('');
     setOverview(null);
-    setUsers([]);
+    setUserAnalytics(null);
     setArticles([]);
     setColumns([]);
     setEvents([]);
@@ -279,24 +279,26 @@ function App() {
   return (
     <div className="admin-layout">
       <aside className="sidebar">
-        <div>
-          <div className="brand">AI Reader</div>
-          <div className="brand-subtitle">React 管理后台</div>
+        <div className="sidebar-main">
+          <div>
+            <div className="brand">AI Reader</div>
+            <div className="brand-subtitle">React 管理后台</div>
+          </div>
+          <nav className="nav-list">
+            {(Object.keys(tabLabels) as AdminTab[]).map((tab) => (
+              <button
+                key={tab}
+                className={tab === activeTab ? 'nav-item active' : 'nav-item'}
+                onClick={() => {
+                  setActiveTab(tab);
+                  void loadTabData(tab);
+                }}
+              >
+                {tabLabels[tab]}
+              </button>
+            ))}
+          </nav>
         </div>
-        <nav className="nav-list">
-          {(Object.keys(tabLabels) as AdminTab[]).map((tab) => (
-            <button
-              key={tab}
-              className={tab === activeTab ? 'nav-item active' : 'nav-item'}
-              onClick={() => {
-                setActiveTab(tab);
-                void loadTabData(tab);
-              }}
-            >
-              {tabLabels[tab]}
-            </button>
-          ))}
-        </nav>
         <div className="sidebar-footer">
           <div className="admin-chip">当前管理员：{adminName}</div>
           <button className="ghost-btn" onClick={handleLogout}>
@@ -378,13 +380,69 @@ function App() {
 
         {activeTab === 'users' ? (
           <section className="page-section">
-            <Panel title="用户列表">
+            <div className="card-grid">
+              <StatCard
+                label="总用户数"
+                value={userAnalytics?.summary.totalUsers || 0}
+              />
+              <StatCard
+                label="近7天新用户"
+                value={userAnalytics?.summary.newUsers7d || 0}
+              />
+              <StatCard
+                label="近7天 PV"
+                value={userAnalytics?.summary.pageViews7d || 0}
+              />
+              <StatCard
+                label="近7天 UV"
+                value={userAnalytics?.summary.uniqueVisitors7d || 0}
+              />
+              <StatCard
+                label="平均停留时长(秒)"
+                value={userAnalytics?.summary.avgStaySeconds7d || 0}
+              />
+              <StatCard
+                label="人均浏览页数"
+                value={userAnalytics?.summary.avgPvPerUv7d || 0}
+              />
+            </div>
+
+            <div className="panel-grid">
+              <Panel title="近7天流量趋势">
+                <SimpleTable
+                  headers={['日期', 'PV', 'UV', '平均停留(秒)']}
+                  rows={(userAnalytics?.trafficTrend || []).map((item) => [
+                    item.date,
+                    String(item.pv),
+                    String(item.uv),
+                    String(item.avgStaySeconds),
+                  ])}
+                />
+              </Panel>
+              <Panel title="近7天新增用户">
+                <SimpleBarList
+                  items={(userAnalytics?.growthTrend || []).map((item) => ({
+                    name: item.date,
+                    value: item.newUsers,
+                  }))}
+                />
+              </Panel>
+            </div>
+
+            <div className="panel-grid">
+              <Panel title="核心转化动作">
+                <FunnelList items={userAnalytics?.conversionFunnel || []} />
+              </Panel>
+            </div>
+
+            <Panel title="脱敏用户概览">
               <SimpleTable
-                headers={['用户名', '昵称', '关键词订阅', '收藏数', '专栏订阅数', '创建时间']}
-                rows={users.map((user) => [
-                  user.username,
-                  user.nickname,
-                  user.subscribedKeywords.join('、') || '-',
+                headers={['展示名', '账号标识', '用户分层', '关键词数', '收藏数', '专栏数', '注册时间']}
+                rows={(userAnalytics?.userSnapshots || []).map((user) => [
+                  user.displayName,
+                  user.handle,
+                  user.segment,
+                  String(user.keywordCount),
                   String(user.collectedArticleCount),
                   String(user.subscribedColumnCount),
                   formatDate(user.createdAt),
@@ -589,6 +647,51 @@ function SimpleBarList(props: { items: Array<{ name: string; value: number }> })
               className="bar-fill"
               style={{ width: `${(item.value / max) * 100}%` }}
             />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FunnelList(
+  props: {
+    items: Array<{
+      name: string;
+      value: number;
+      rateFromPrevious: number;
+      rateFromEntry: number;
+    }>;
+  },
+) {
+  if (props.items.length === 0) {
+    return <div className="empty-state">暂无数据</div>;
+  }
+
+  const max = Math.max(...props.items.map((item) => item.value), 1);
+
+  return (
+    <div className="funnel-list">
+      {props.items.map((item, index) => (
+        <div key={`${item.name}-${index}`} className="funnel-card">
+          <div className="funnel-top">
+            <div>
+              <div className="funnel-step">
+                Step {index + 1}
+              </div>
+              <strong>{item.name}</strong>
+            </div>
+            <div className="funnel-value">{item.value}</div>
+          </div>
+          <div className="funnel-track">
+            <div
+              className="funnel-fill"
+              style={{ width: `${(item.value / max) * 100}%` }}
+            />
+          </div>
+          <div className="funnel-meta">
+            <span>较上一步 {item.rateFromPrevious}%</span>
+            <span>较访问 {item.rateFromEntry}%</span>
           </div>
         </div>
       ))}

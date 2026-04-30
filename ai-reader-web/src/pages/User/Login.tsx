@@ -28,14 +28,17 @@ const Login = () => {
           avatar: profile.avatar || res.user.avatar,
           subscribedKeywords: profile.subscribedKeywords || [],
           collectedArticleIds: profile.collectedArticleIds || [],
+          subscribedColumnIds: profile.subscribedColumnIds || [],
         });
       } catch {
         login({
           id: res.user.id,
+          username: res.user.username,
           nickname: res.user.nickname || res.user.username || "AI读者",
           avatar: res.user.avatar,
           subscribedKeywords: [],
           collectedArticleIds: [],
+          subscribedColumnIds: [],
         });
       }
       message.success("登录成功");

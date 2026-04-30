@@ -11,7 +11,12 @@ export default defineConfig({
     },
   },
   server: {
-    // 前端开发端口
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
 });

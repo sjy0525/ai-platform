@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import Home from "../pages/Home";
 import ErrorBoundary from "../components/ErrorBoundary";
 import Trending from "../pages/Trending";
@@ -9,49 +9,56 @@ import Register from "../pages/User/Register";
 import User from "../pages/User/User";
 import Article from "../pages/article";
 import SearchResult from "../pages/SearchResult";
+import AnalyticsTracker from "../components/AnalyticsTracker";
+
+const AppShell = () => (
+  <>
+    <AnalyticsTracker />
+    <Outlet />
+  </>
+);
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Home />,
+    element: <AppShell />,
     errorElement: <ErrorBoundary />,
     children: [
-      
+      {
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/article/:id",
+        element: <Article />,
+      },
+      {
+        path: "/trending",
+        element: <Trending />,
+      },
+      {
+        path: "/search",
+        element: <SearchResult />,
+      },
+      {
+        path: "/subscription",
+        element: <Subscription />,
+      },
+      {
+        path: "/favorite",
+        element: <Favorite />,
+      },
+      {
+        path: "/user-info",
+        element: <User />,
+      },
+      {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/register",
+        element: <Register />,
+      },
     ],
-  },
-  {
-    path: "/article/:id",
-    element: <Article />,
-    errorElement: <ErrorBoundary />,
-  },
-  {
-    path: "/trending",
-    element: <Trending />,
-    errorElement: <ErrorBoundary />,
-  },
-  {
-    path: "/search",
-    element: <SearchResult />,
-    errorElement: <ErrorBoundary />,
-  },
-  {
-    path: "/subscription",
-    element: <Subscription></Subscription>,
-  },
-  {
-    path: "/favorite",
-    element: <Favorite></Favorite>,
-  },
-  {
-    path: "/user-info",
-    element: <User></User>,
-  },
-  {
-    path: "/login",
-    element: <Login></Login>,
-  },
-  {
-    path: "/register",
-    element: <Register></Register>,
   },
 ]);

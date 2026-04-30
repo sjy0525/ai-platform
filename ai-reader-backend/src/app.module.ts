@@ -15,6 +15,7 @@ import { Article } from './entities/article.entity';
 import { TechColumn } from './entities/column.entity';
 import { AnalyticsEvent } from './entities/analytics-event.entity';
 import { AdminModule } from './modules/admin/admin.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AdminModule } from './modules/admin/admin.module';
     ColumnModule,
     AiModule,
     AdminModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
 })

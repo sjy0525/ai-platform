@@ -34,6 +34,12 @@ export class AdminController {
   }
 
   @UseGuards(AdminGuard)
+  @Get('user-analytics')
+  getUserAnalytics() {
+    return this.adminService.getUserAnalytics();
+  }
+
+  @UseGuards(AdminGuard)
   @Get('articles')
   getArticles(
     @Query('q') q?: string,
